@@ -1,5 +1,16 @@
 
-import { Calendar, KanbanSquare, Home, Users } from "lucide-react";
+import { Calendar, KanbanSquare, Home, Users, LogOut, User } from "lucide-react";
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
   activeSection: string;
@@ -7,12 +18,27 @@ interface HeaderProps {
 }
 
 const Header = ({ activeSection, setActiveSection }: HeaderProps) => {
+  const { user, userRole, signOut, isAdmin, isLeader } = useAuth();
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'escalas', label: 'Escalas', icon: Calendar },
     { id: 'demandas', label: 'Demandas', icon: KanbanSquare },
     { id: 'equipes', label: 'Equipes', icon: Users },
   ];
+
+  const getRoleBadge = () => {
+    switch (userRole) {
+      case 'admin':
+        return <Badge variant="destructive">Admin</Badge>;
+      case 'leader':
+        return <Badge variant="default">Líder</Badge>;
+      case 'member':
+        return <Badge variant="secondary">Membro</Badge>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm border-b border-slate-200">
@@ -47,11 +73,25 @@ const Header = ({ activeSection, setActiveSection }: HeaderProps) => {
             })}
           </nav>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button className="p-2 rounded-lg text-slate-600 hover:bg-slate-50">
-              <KanbanSquare className="w-5 h-5" />
-            </button>
+          {/* User Menu */}
+          <div className="flex items-center space-x-3">
+            {getRoleBadge()}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">{user?.email}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
