@@ -32,7 +32,10 @@ const CreateTeam = () => {
 
   const onSubmit = async (data: TeamFormData) => {
     try {
-      await createTeamMutation.mutateAsync(data);
+      await createTeamMutation.mutateAsync({
+        name: data.name,
+        description: data.description || '',
+      });
       navigate('/');
     } catch (error) {
       console.error('Erro ao criar equipe:', error);

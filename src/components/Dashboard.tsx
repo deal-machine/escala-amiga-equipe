@@ -52,33 +52,6 @@ const Dashboard = () => {
         <p className="text-slate-600">Visão geral do sistema</p>
       </div>
 
-      {/* Ações Rápidas */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Ações Rápidas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {quickActions.map((action) => (
-              <Button
-                key={action.title}
-                onClick={action.onClick}
-                className={`h-auto p-4 flex flex-col items-center gap-2 text-white ${action.color}`}
-              >
-                <action.icon className="h-6 w-6" />
-                <div className="text-center">
-                  <div className="font-semibold">{action.title}</div>
-                  <div className="text-xs opacity-90">{action.description}</div>
-                </div>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
@@ -126,39 +99,69 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Atividade Recente */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Atividade Recente
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {activityLoading ? (
-            <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-            </div>
-          ) : recentActivity && recentActivity.length > 0 ? (
-            <div className="space-y-3">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-800">
-                      {activity.description}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      por {activity.user_name} • {new Date(activity.timestamp).toLocaleString()}
-                    </p>
+      {/* Grid com Ações Rápidas e Atividade Recente */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Ações Rápidas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Ações Rápidas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-3">
+              {quickActions.map((action) => (
+                <Button
+                  key={action.title}
+                  onClick={action.onClick}
+                  className={`h-auto p-4 flex items-center gap-3 text-white ${action.color}`}
+                >
+                  <action.icon className="h-5 w-5 flex-shrink-0" />
+                  <div className="text-left flex-1">
+                    <div className="font-semibold">{action.title}</div>
+                    <div className="text-xs opacity-90">{action.description}</div>
                   </div>
-                </div>
+                </Button>
               ))}
             </div>
-          ) : (
-            <p className="text-slate-500 text-center py-4">Nenhuma atividade recente</p>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Atividade Recente */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Atividade Recente
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {activityLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+              </div>
+            ) : recentActivity && recentActivity.length > 0 ? (
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-800">
+                        {activity.description}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        por {activity.user_name} • {new Date(activity.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-500 text-center py-4">Nenhuma atividade recente</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

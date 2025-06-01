@@ -1,25 +1,22 @@
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, MapPin, Users } from 'lucide-react';
+import { ArrowLeft, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateEvent } from '@/hooks/api/useEvents';
-import { useTeams } from '@/hooks/api/useTeams';
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   event_date: z.string().min(1, 'Data é obrigatória'),
-  event_time: z.string().min(1, 'Horário é obrigatório'),
-  location: z.string().optional(),
+  event_time: z.string().min(1, 'Hora é obrigatória'),
+  location: z.string().min(1, 'Local é obrigatório'),
   team_id: z.string().min(1, 'Equipe é obrigatória'),
 });
 
@@ -28,7 +25,6 @@ type EventFormData = z.infer<typeof eventSchema>;
 const CreateEvent = () => {
   const navigate = useNavigate();
   const createEventMutation = useCreateEvent();
-  const { data: teams, isLoading: teamsLoading } = useTeams();
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -44,7 +40,14 @@ const CreateEvent = () => {
 
   const onSubmit = async (data: EventFormData) => {
     try {
-      await createEventMutation.mutateAsync(data);
+      await createEventMutation.mutateAsync({
+        title: data.title,
+        description: data.description || '',
+        event_date: data.event_date,
+        event_time: data.event_time,
+        location: data.location,
+        team_id: data.team_id,
+      });
       navigate('/');
     } catch (error) {
       console.error('Erro ao criar evento:', error);
@@ -84,7 +87,7 @@ const CreateEvent = () => {
                     <FormItem>
                       <FormLabel>Título do Evento</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Culto Domingo Manhã" {...field} />
+                        <Input placeholder="Ex: Culto Domingo, Reunião de Oração..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -99,7 +102,7 @@ const CreateEvent = () => {
                       <FormLabel>Descrição</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Descrição opcional do evento..."
+                          placeholder="Descreva detalhes sobre o evento..."
                           {...field}
                         />
                       </FormControl>
@@ -114,10 +117,7 @@ const CreateEvent = () => {
                     name="event_date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          Data
-                        </FormLabel>
+                        <FormLabel>Data</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -131,10 +131,7 @@ const CreateEvent = () => {
                     name="event_time"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Horário
-                        </FormLabel>
+                        <FormLabel>Hora</FormLabel>
                         <FormControl>
                           <Input type="time" {...field} />
                         </FormControl>
@@ -149,12 +146,9 @@ const CreateEvent = () => {
                   name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        Local
-                      </FormLabel>
+                      <FormLabel>Local</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Auditório Principal" {...field} />
+                        <Input placeholder="Ex: Auditório Principal, Sala 1..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -166,24 +160,10 @@ const CreateEvent = () => {
                   name="team_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        Equipe Responsável
-                      </FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma equipe" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {teams?.map((team) => (
-                            <SelectItem key={team.id} value={team.id}>
-                              {team.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Equipe Responsável</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Selecione a equipe..." {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

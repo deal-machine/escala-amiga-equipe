@@ -3,17 +3,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, Clock, User } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { useCreateDemand } from '@/hooks/api/useDemands';
-import { useTeams, useProfiles } from '@/hooks/api/useTeams';
 
 const demandSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
@@ -29,8 +25,6 @@ type DemandFormData = z.infer<typeof demandSchema>;
 const CreateDemand = () => {
   const navigate = useNavigate();
   const createDemandMutation = useCreateDemand();
-  const { data: teams } = useTeams();
-  const { data: profiles } = useProfiles();
 
   const form = useForm<DemandFormData>({
     resolver: zodResolver(demandSchema),
@@ -46,19 +40,19 @@ const CreateDemand = () => {
 
   const onSubmit = async (data: DemandFormData) => {
     try {
-      await createDemandMutation.mutateAsync(data);
+      await createDemandMutation.mutateAsync({
+        title: data.title,
+        description: data.description || '',
+        priority: data.priority,
+        assigned_to: data.assigned_to,
+        requesting_team_id: data.requesting_team_id,
+        due_date: data.due_date,
+      });
       navigate('/');
     } catch (error) {
       console.error('Erro ao criar demanda:', error);
     }
   };
-
-  const priorityOptions = [
-    { value: 'low', label: 'Baixa', color: 'text-green-600' },
-    { value: 'medium', label: 'Média', color: 'text-yellow-600' },
-    { value: 'high', label: 'Alta', color: 'text-orange-600' },
-    { value: 'urgent', label: 'Urgente', color: 'text-red-600' },
-  ];
 
   return (
     <div className="min-h-screen bg-slate-50 p-4">
@@ -73,7 +67,7 @@ const CreateDemand = () => {
             Voltar
           </Button>
           <h1 className="text-3xl font-bold text-slate-800">Criar Demanda</h1>
-          <p className="text-slate-600">Cadastre uma nova demanda ou tarefa</p>
+          <p className="text-slate-600">Cadastre uma nova tarefa ou solicitação</p>
         </div>
 
         <Card>
@@ -93,7 +87,7 @@ const CreateDemand = () => {
                     <FormItem>
                       <FormLabel>Título da Demanda</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Configurar sistema de som" {...field} />
+                        <Input placeholder="Ex: Configurar som, Criar banner..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -108,36 +102,9 @@ const CreateDemand = () => {
                       <FormLabel>Descrição</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Descreva os detalhes da demanda..."
+                          placeholder="Descreva detalhes sobre a demanda..."
                           {...field}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prioridade</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="grid grid-cols-2 gap-4"
-                        >
-                          {priorityOptions.map((option) => (
-                            <div key={option.value} className="flex items-center space-x-2">
-                              <RadioGroupItem value={option.value} id={option.value} />
-                              <Label htmlFor={option.value} className={option.color}>
-                                {option.label}
-                              </Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -147,27 +114,21 @@ const CreateDemand = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="assigned_to"
+                    name="priority"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          Responsável
-                        </FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um responsável" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {profiles?.map((profile) => (
-                              <SelectItem key={profile.id} value={profile.id}>
-                                {profile.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Prioridade</FormLabel>
+                        <FormControl>
+                          <select 
+                            {...field}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="low">Baixa</option>
+                            <option value="medium">Média</option>
+                            <option value="high">Alta</option>
+                            <option value="urgent">Urgente</option>
+                          </select>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -175,24 +136,13 @@ const CreateDemand = () => {
 
                   <FormField
                     control={form.control}
-                    name="requesting_team_id"
+                    name="due_date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Equipe Solicitante</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma equipe" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {teams?.map((team) => (
-                              <SelectItem key={team.id} value={team.id}>
-                                {team.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Data Limite</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -201,15 +151,26 @@ const CreateDemand = () => {
 
                 <FormField
                   control={form.control}
-                  name="due_date"
+                  name="assigned_to"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        Prazo
-                      </FormLabel>
+                      <FormLabel>Responsável</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input placeholder="Atribuir a alguém (opcional)..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="requesting_team_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Equipe Solicitante</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Equipe que está solicitando (opcional)..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
